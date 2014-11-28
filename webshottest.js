@@ -9,9 +9,55 @@ var querystring = require('querystring');
 function callback(error, response, body) {
     if (!error && response.statusCode == 200) {
         var info = JSON.parse(body);
-        console.log(body);
-        console.log(info.stargazers_count + " Stars");
-        console.log(info.forks_count + " Forks");
+
+        max_main_length = 0;
+
+        for (var idx in j['shopList']) {
+            shop = j['shopList'][idx];
+
+            name = shop['name'];
+            location = shop['locName'];
+
+            main = [];
+            others = [];
+
+            for (var jdx in shop['foodList']) {
+                i = shop['foodList'][jdx];
+
+                if (i['section'] == target_section) {
+                    main.push(i['mainFood']);
+                    others.push(i['foods'].split(','));
+
+                    console.log(main[0]);
+                }
+
+                if (len(main) > max_main_length) {
+                    max_main_length = len(main);
+                }
+
+                max_length = 0;
+                for (var other in others) {
+                    if (len(other) > max_length)
+                        max_length = len(other);
+                }
+
+                new_others = [];
+                for (var k in range(max_length)) {
+                    subs = [];
+                    for (var i in others) {
+                        other = others[i];
+                        try:
+                            subs.push(other[k]);
+                        except:
+                            subs.push(' ');
+                    }
+                    new_others.push(subs);
+                }
+
+                menu = Menu(name, location, main, new_others);
+                menus.push(menu);
+            }
+        }
     }
 }
 
