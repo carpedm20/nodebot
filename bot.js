@@ -5,24 +5,29 @@ client.on("error", function (err) {
     console.log("Error " + err);
 });
 
-client.get("cs-long-token", function(err, reply) {
+client.get("cs-long-token", function(err, data) {
+    if(err || data === null) {
+        console.log("Error: cs-long-token not exist");
+        process.exit(1);
+    } else {
+        console.log(" [*] Start bot with " + data + "\n");
+    }
+
     var schedule = require('node-schedule');
     var rule = new schedule.RecurrenceRule();
-    rule.hour = [8, 11, 5];
-    rule.minute = 0;
+    rule.minute = 21;
 
-    var j = schedule.scheduleJob(rule, function(){
-        var token = reply;
+    //var j = schedule.scheduleJob(rule, function(){
+        console.log(" [*] Start schedule");
+        var token = data;
 
         var https = require('https');
         var fs = require('fs');
         var FormData = require('form-data');
 
-        var ACCESS_TOKEN = "";
-
         var form = new FormData();
-        form.append('file', fs.createReadStream(__dirname+'/tars.jpg'));
-        form.append('message', "테스트");
+        form.append('file', fs.createReadStream(__dirname+'/vDh82Dl.png'));
+        form.append('message', "Testing...");
 
         var options = {
             method: 'post',
@@ -31,8 +36,11 @@ client.get("cs-long-token", function(err, reply) {
             headers: form.getHeaders(),
         }
 
+        console.log(" [*] Send form");
         var request = https.request(options, function(res) {
+            console.log(" [*] Success");
             //console.log(res);
         });
-    });
+
+    //});
 });
