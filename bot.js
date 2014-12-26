@@ -38,8 +38,13 @@ client.get("cs-long-token", function(err, data) {
 
         console.log(" [*] Send form");
         var request = https.request(options, function(res) {
-            console.log(" [*] Success");
-            //console.log(res);
+            console.log(res);
+        });
+
+        form.pipe(request);
+        
+        request.on('error', function (error) {
+            console.log(error);
         });
 
     //});
