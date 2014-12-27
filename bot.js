@@ -13,24 +13,29 @@ function Facebook() {
         this.fb.setAccessToken(token);
     };
 
-    this.upload_post = function(msg, link) {
+    this.upload_post = function(company, job, content, link) {
+        msg = "[" + company + "] " + job + "\r\n\r\n" + content;
+
         var data = {
             'link': link,
             'message': msg,
         }
 
-        this.fb.api('me/feed', 'post', data, function (res) {
-        if(!res || res.error) {
-            console.log(!res ? 'error occurred' : res.error);
-            return;
-        }
-        console.log('Post Id: ' + res.id);
-        });
+        /*this.fb.api('me/feed', 'post', data, function (res) {
+            if(!res || res.error) {
+                console.log(!res ? 'error occurred' : res.error);
+                return;
+            }
+            console.log('Post Id: ' + res.id);
+        });*/
+
+        console.log(" [#] Upload " + company);
     };
 
     this.get_post = function(jobs, companies, contents, links) {
         this.fb.api('me/feed', 'get', function (res) {
             if(!res || res.error) {
+                console(" [!!!!!!!]");
                 console.log(!res ? 'error occurred' : res.error);
                 return;
             }
@@ -50,17 +55,55 @@ function Facebook() {
                     company = companies[idx],
                     content = contents[idx],
                     link = links[idx];
-                if (posted_links.indexOf(link) == -1) {
-                    msg = "[" + company + "] " + job + "\r\n\r\n" + content;
-                    fb.upload_post(msg, link);
 
-                    setTimeout(function() {
-                        console.log(" [#] Upload " + company);
-                    }, 60000);
+                if (posted_links.indexOf(link) == -1) {
+                    setTimeout(fb.upload_post, idx*5000, company, job, content, link);
                 }
             }
         });
     };
+}
+
+var task = function() {
+    console.log(" [*] Start Interval ->");
+
+    var jsdom = require("jsdom");
+
+    jsdom.env(
+        "http://rocketpun.ch/recruit/list/",
+        ["http://code.jquery.com/jquery.js"],
+        function(errors, w) {
+            var jobs = [], companies = [], links = [], contents = [];
+
+            job_elems = w.$(".hr_list .hr_text_job");
+            company_elems = w.$(".hr_list .hr_text_company");
+            content_elems = w.$(".hr_list .hr_text_2");
+            href_elems = w.$(".hr_list .hr_hover_bg a");
+
+            for (var idx in job_elems) {
+                var job = job_elems[idx].innerHTML,
+                    company = company_elems[idx].innerHTML,
+                    content = content_elems[idx].innerHTML,
+                    a = href_elems[idx].href;
+
+                if (typeof job != 'undefined')
+                    jobs.push(job.trim());
+                if (typeof company != 'undefined')
+                    companies.push(company.trim());
+                if (typeof content != 'undefined')
+                    contents.push(content.trim());
+                if (typeof a != 'undefined')
+                    links.push(a);
+            }
+
+            var j = fb.get_post(jobs, companies, contents, links);
+        }
+    );
+};
+
+function setIntervalAndExecute(fn, t) {
+    fn();
+    return(setInterval(fn, t));
 }
 
 client.get("cs-long-token", function(err, token) {
@@ -77,41 +120,5 @@ client.get("cs-long-token", function(err, token) {
     fb = new Facebook();
     fb.set_token(token);
 
-    setInterval(function() {
-        console.log(" [*] Start Interval ->");
-
-        var jsdom = require("jsdom");
-        var jobs = [], companies = [], links = [], contents = [];
-
-        jsdom.env(
-            "http://rocketpun.ch/recruit/list/",
-            ["http://code.jquery.com/jquery.js"],
-            function(errors, w) {
-                job_elems = w.$(".hr_list .hr_text_job");
-                company_elems = w.$(".hr_list .hr_text_company");
-                content_elems = w.$(".hr_list .hr_text_2");
-                href_elems = w.$(".hr_list .hr_hover_bg a");
-
-                for (var idx in job_elems) {
-                    var job = job_elems[idx].innerHTML,
-                        company = company_elems[idx].innerHTML,
-                        content = content_elems[idx].innerHTML,
-                        a = href_elems[idx].href;
-
-                    if (typeof job != 'undefined')
-                        jobs.push(job.trim());
-                    if (typeof company != 'undefined')
-                        companies.push(company.trim());
-                    if (typeof content != 'undefined')
-                        contents.push(content.trim());
-                    if (typeof a != 'undefined')
-                        links.push(a);
-                }
-
-                var j = fb.get_post(jobs, companies, contents, links);
-
-            }
-        );
-
-    }, interval);
+    var i = setIntervalAndExecute(task, interval);
 });
