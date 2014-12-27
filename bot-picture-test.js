@@ -13,44 +13,39 @@ client.get("cs-long-token", function(err, data) {
         console.log(" [*] Start bot with " + data + "\n");
     }
 
-    var https = require('https');
-    var fs = require('fs');
+    var schedule = require('node-schedule');
+    var rule = new schedule.RecurrenceRule();
+    rule.minute = 21;
 
-    var minutes = 5, interval = minutes * 60 * 1000;
-
-    //setInterval(function() {
+    //var j = schedule.scheduleJob(rule, function(){
         console.log(" [*] Start schedule");
         var token = data;
 
-        var data = {
-            'link': 'http://rocketpun.ch/recruit/1568/',
-            'message': '[앨리스(ALICE)] 기획자',
-        }
+        var https = require('https');
+        var fs = require('fs');
+        var FormData = require('form-data');
+
+        var form = new FormData();
+        form.append('file', fs.createReadStream(__dirname+'/vDh82Dl.png'));
+        form.append('message', "Testing...");
 
         var options = {
             method: 'post',
             host: 'graph.facebook.com',
-            path: '/me/feed?access_token='+token,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': data.length
-            }
+            path: '/me/photos?access_token='+token,
+            headers: form.getHeaders(),
         }
 
         console.log(" [*] Send form");
         var request = https.request(options, function(res) {
-            res.setEncoding('utf8');
-            res.on('data', function (chunk) {
-                console.log('Response: ' + chunk);
-            });
+            console.log(res);
         });
 
-        request.write(data);
-        request.end();
+        form.pipe(request);
         
         request.on('error', function (error) {
             console.log(error);
         });
 
-    //}, interval);
+    //});
 });
